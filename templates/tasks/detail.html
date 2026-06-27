@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block title %}{{ task.title }} – AgileTrack{% endblock %}
+{% block page_title %}Task Detail{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12 col-lg-8">
+        <div class="form-card" style="max-width:none">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h2 style="font-size:1.4rem; font-weight:700; margin-bottom:8px">{{ task.title }}</h2>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge badge-{{ task.status }}">{{ task.get_status_display }}</span>
+                        <span class="badge badge-{{ task.priority }}">
+                            <span class="priority-dot {{ task.priority }} me-1"></span>{{ task.get_priority_display }}
+                        </span>
+                        {% if task.is_overdue %}
+                        <span class="overdue-badge">Overdue</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'task_edit' task.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    {% if user.is_manager_role or task.created_by == user %}
+                    <a href="{% url 'task_delete' task.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if task.description %}
+            <div class="mb-4">
+                <h6 class="text-muted text-uppercase fw-600" style="font-size:0.72rem;letter-spacing:0.08em">Description</h6>
+                <p style="line-height:1.7; color:#374151">{{ task.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Update Status -->
+            <div class="mb-4 p-3 rounded" style="background:#f8fafc; border:1px solid #e2e8f0">
+                <h6 class="text-muted text-uppercase fw-600 mb-2" style="font-size:0.72rem;letter-spacing:0.08em">Update Status</h6>
+                <form method="post" class="d-flex gap-2 align-items-center">
+                    {% csrf_token %}
+                    {{ status_form.status }}
+                    <button type="submit" name="update_status" class="btn btn-sm btn-primary">Update</button>
+                </form>
+            </div>
+
+            <!-- Comments -->
+            <div>
+                <h6 class="text-muted text-uppercase fw-600 mb-3" style="font-size:0.72rem;letter-spacing:0.08em">
+                    Comments ({{ comments.count }})
+                </h6>
+
+                {% for comment in comments %}
+                <div class="d-flex gap-3 mb-3">
+                    <div class="user-avatar flex-shrink-0" style="width:32px;height:32px;font-size:0.65rem;background:{{ comment.author.avatar_color }}">
+                        {{ comment.author.get_initials }}
+                    </div>
+                    <div class="flex-1">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span style="font-size:0.875rem; font-weight:600">{{ comment.author.get_full_name|default:comment.author.username }}</span>
+                            <span class="text-muted" style="font-size:0.75rem">{{ comment.created_at|timesince }} ago</span>
+                        </div>
+                        <div style="font-size:0.875rem; color:#374151; line-height:1.6">{{ comment.content }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted" style="font-size:0.875rem">No comments yet. Be the first!</p>
+                {% endfor %}
+
+                <!-- Add Comment -->
+                <form method="post" class="mt-3">
+                    {% csrf_token %}
+                    {{ comment_form.content }}
+                    <button type="submit" name="add_comment" class="btn btn-sm btn-primary mt-2">Add Comment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar details -->
+    <div class="col-12 col-lg-4">
+        <div class="form-card" style="max-width:none">
+            <h6 class="text-muted text-uppercase fw-600 mb-3" style="font-size:0.72rem;letter-spacing:0.08em">Task Details</h6>
+
+            <div class="mb-3">
+                <div class="text-muted mb-1" style="font-size:0.75rem">Project</div>
+                {% if task.project %}
+                <a href="{% url 'project_detail' task.project.pk %}" style="font-size:0.875rem; font-weight:600; text-decoration:none">
+                    {{ task.project.name }}
+                </a>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <div class="text-muted mb-1" style="font-size:0.75rem">Assigned To</div>
+                {% if task.assigned_to %}
+                <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar" style="width:28px;height:28px;font-size:0.6rem;background:{{ task.assigned_to.avatar_color }}">
+                        {{ task.assigned_to.get_initials }}
+                    </div>
+                    <span style="font-size:0.875rem; font-weight:500">{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</span>
+                </div>
+                {% else %}<span class="text-muted">Unassigned</span>{% endif %}
+            </div>
+
+            <div class="mb-3">
+                <div class="text-muted mb-1" style="font-size:0.75rem">Created By</div>
+                <span style="font-size:0.875rem">{{ task.created_by.get_full_name|default:task.created_by.username|default:"—" }}</span>
+            </div>
+
+            <div class="mb-3">
+                <div class="text-muted mb-1" style="font-size:0.75rem">Deadline</div>
+                {% if task.deadline %}
+                <span class="{% if task.is_overdue %}overdue-badge{% else %}fw-500{% endif %}" style="font-size:0.875rem">
+                    {{ task.deadline }}
+                    {% with days=task.days_until_deadline %}
+                    {% if days is not None %}
+                    <span class="text-muted ms-1" style="font-size:0.72rem">
+                        ({% if days < 0 %}{{ days|abs }} days ago{% elif days == 0 %}today{% else %}{{ days }} days left{% endif %})
+                    </span>
+                    {% endif %}
+                    {% endwith %}
+                </span>
+                {% else %}<span class="text-muted">No deadline</span>{% endif %}
+            </div>
+
+            <div class="mb-3">
+                <div class="text-muted mb-1" style="font-size:0.75rem">Created</div>
+                <span style="font-size:0.875rem">{{ task.created_at|date:"M d, Y" }}</span>
+            </div>
+
+            <div>
+                <div class="text-muted mb-1" style="font-size:0.75rem">Last Updated</div>
+                <span style="font-size:0.875rem">{{ task.updated_at|timesince }} ago</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

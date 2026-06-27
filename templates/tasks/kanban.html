@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Kanban Board – AgileTrack{% endblock %}
+{% block page_title %}Kanban Board{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Kanban Board</h1>
+    <a href="{% url 'task_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> New Task
+    </a>
+</div>
+
+<!-- Project filter -->
+<div class="filter-bar mb-4">
+    <form method="get" class="d-flex gap-2 align-items-center">
+        <label class="text-muted" style="font-size:0.875rem; white-space:nowrap">Filter by project:</label>
+        <select name="project" class="form-select form-select-sm" style="max-width:200px" onchange="this.form.submit()">
+            <option value="">All Projects</option>
+            {% for project in projects %}
+            <option value="{{ project.pk }}" {% if project.pk|stringformat:"s" == project_filter %}selected{% endif %}>{{ project.name }}</option>
+            {% endfor %}
+        </select>
+        {% if project_filter %}
+        <a href="{% url 'kanban_board' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="kanban-board">
+    <!-- To Do -->
+    <div class="kanban-column">
+        <div class="kanban-column-header todo">
+            <span><i class="bi bi-circle me-2"></i>To Do</span>
+            <span class="kanban-count">{{ todo_tasks.count }}</span>
+        </div>
+        <div class="kanban-column-body">
+            {% for task in todo_tasks %}
+            <a href="{% url 'task_detail' task.pk %}" class="task-card">
+                <div class="d-flex justify-content-between mb-1">
+                    <div class="task-title">{{ task.title }}</div>
+                    <span class="priority-dot {{ task.priority }} ms-2 mt-1 flex-shrink-0"></span>
+                </div>
+                <div class="task-meta">
+                    {% if task.project %}
+                    <span class="badge bg-light text-secondary" style="font-size:0.68rem">{{ task.project.name }}</span>
+                    {% endif %}
+                    {% if task.assigned_to %}
+                    <div class="user-avatar ms-auto" style="width:22px;height:22px;font-size:0.55rem;background:{{ task.assigned_to.avatar_color }}" title="{{ task.assigned_to.get_full_name }}">
+                        {{ task.assigned_to.get_initials }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% if task.deadline %}
+                <div class="mt-1 {% if task.is_overdue %}overdue-badge{% else %}text-muted{% endif %}" style="font-size:0.7rem">
+                    <i class="bi bi-calendar3 me-1"></i>{{ task.deadline }}
+                </div>
+                {% endif %}
+            </a>
+            {% empty %}
+            <div class="text-center py-3 text-muted" style="font-size:0.8rem">No tasks here</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- In Progress -->
+    <div class="kanban-column">
+        <div class="kanban-column-header in-progress">
+            <span><i class="bi bi-arrow-repeat me-2"></i>In Progress</span>
+            <span class="kanban-count">{{ in_progress_tasks.count }}</span>
+        </div>
+        <div class="kanban-column-body">
+            {% for task in in_progress_tasks %}
+            <a href="{% url 'task_detail' task.pk %}" class="task-card">
+                <div class="d-flex justify-content-between mb-1">
+                    <div class="task-title">{{ task.title }}</div>
+                    <span class="priority-dot {{ task.priority }} ms-2 mt-1 flex-shrink-0"></span>
+                </div>
+                <div class="task-meta">
+                    {% if task.project %}
+                    <span class="badge bg-light text-secondary" style="font-size:0.68rem">{{ task.project.name }}</span>
+                    {% endif %}
+                    {% if task.assigned_to %}
+                    <div class="user-avatar ms-auto" style="width:22px;height:22px;font-size:0.55rem;background:{{ task.assigned_to.avatar_color }}" title="{{ task.assigned_to.get_full_name }}">
+                        {{ task.assigned_to.get_initials }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% if task.deadline %}
+                <div class="mt-1 {% if task.is_overdue %}overdue-badge{% else %}text-muted{% endif %}" style="font-size:0.7rem">
+                    <i class="bi bi-calendar3 me-1"></i>{{ task.deadline }}
+                </div>
+                {% endif %}
+            </a>
+            {% empty %}
+            <div class="text-center py-3 text-muted" style="font-size:0.8rem">No tasks here</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Done -->
+    <div class="kanban-column">
+        <div class="kanban-column-header done">
+            <span><i class="bi bi-check-circle me-2"></i>Done</span>
+            <span class="kanban-count">{{ done_tasks.count }}</span>
+        </div>
+        <div class="kanban-column-body">
+            {% for task in done_tasks %}
+            <a href="{% url 'task_detail' task.pk %}" class="task-card" style="opacity:0.75">
+                <div class="d-flex justify-content-between mb-1">
+                    <div class="task-title" style="text-decoration:line-through; color:#64748b">{{ task.title }}</div>
+                </div>
+                <div class="task-meta">
+                    {% if task.project %}
+                    <span class="badge bg-light text-secondary" style="font-size:0.68rem">{{ task.project.name }}</span>
+                    {% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <div class="text-center py-3 text-muted" style="font-size:0.8rem">No tasks here</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

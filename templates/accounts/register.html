@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Register – AgileTrack{% endblock %}
+{% block auth_content %}
+<div class="auth-card" style="max-width:520px">
+    <div class="auth-logo">
+        <i class="bi bi-kanban-fill"></i> AgileTrack
+    </div>
+    <p class="auth-subtitle">Create your account</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-6">
+                <label class="form-label fw-semibold">First Name</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-6">
+                <label class="form-label fw-semibold">Last Name</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Role</label>
+                {{ form.role }}
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Password</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}<div class="text-danger small">{{ form.password1.errors }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Confirm Password</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}<div class="text-danger small">{{ form.password2.errors }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary w-100 fw-semibold">Create Account</button>
+            </div>
+        </div>
+    </form>
+    <p class="text-center mt-3 mb-0 text-muted" style="font-size:0.875rem">
+        Already have an account? <a href="{% url 'login' %}">Sign in</a>
+    </p>
+</div>
+{% endblock %}

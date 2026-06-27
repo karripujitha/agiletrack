@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Tasks – AgileTrack{% endblock %}
+{% block page_title %}Tasks{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>All Tasks</h1>
+    <a href="{% url 'task_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> New Task
+    </a>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <form method="get" class="d-flex flex-wrap gap-2 align-items-center w-100">
+        <input type="text" name="q" value="{{ search_query }}" class="form-control form-control-sm" placeholder="Search tasks..." style="max-width:200px">
+        <select name="status" class="form-select form-select-sm" style="max-width:140px">
+            <option value="">All Status</option>
+            {% for val, label in status_choices %}
+            <option value="{{ val }}" {% if val == status_filter %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="priority" class="form-select form-select-sm" style="max-width:140px">
+            <option value="">All Priority</option>
+            {% for val, label in priority_choices %}
+            <option value="{{ val }}" {% if val == priority_filter %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="project" class="form-select form-select-sm" style="max-width:160px">
+            <option value="">All Projects</option>
+            {% for project in projects %}
+            <option value="{{ project.pk }}" {% if project.pk|stringformat:"s" == project_filter %}selected{% endif %}>{{ project.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+        {% if search_query or status_filter or priority_filter or project_filter %}
+        <a href="{% url 'task_list' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Task Table -->
+<div class="table-clean">
+    <table class="table mb-0">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Project</th>
+                <th>Assigned To</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Deadline</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>
+                    <a href="{% url 'task_detail' task.pk %}" style="text-decoration:none; font-weight:600; color:#1e293b">
+                        {{ task.title|truncatechars:45 }}
+                    </a>
+                </td>
+                <td class="text-muted">{{ task.project.name|default:"—" }}</td>
+                <td>
+                    {% if task.assigned_to %}
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="user-avatar" style="width:28px;height:28px;font-size:0.65rem;background:{{ task.assigned_to.avatar_color }}">
+                            {{ task.assigned_to.get_initials }}
+                        </div>
+                        {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
+                    </div>
+                    {% else %}<span class="text-muted">Unassigned</span>{% endif %}
+                </td>
+                <td><span class="badge badge-{{ task.status }}">{{ task.get_status_display }}</span></td>
+                <td>
+                    <span class="d-flex align-items-center gap-1">
+                        <span class="priority-dot {{ task.priority }}"></span>
+                        {{ task.get_priority_display }}
+                    </span>
+                </td>
+                <td>
+                    {% if task.deadline %}
+                    <span class="{% if task.is_overdue %}overdue-badge{% else %}text-muted{% endif %}">
+                        {{ task.deadline }}
+                    </span>
+                    {% else %}—{% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'task_detail' task.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2">View</a>
+                    <a href="{% url 'task_edit' task.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2">Edit</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                    No tasks found. <a href="{% url 'task_create' %}">Create one?</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

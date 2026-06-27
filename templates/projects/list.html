@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Projects – AgileTrack{% endblock %}
+{% block page_title %}Projects{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Projects</h1>
+    {% if user.is_manager_role %}
+    <a href="{% url 'project_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> New Project
+    </a>
+    {% endif %}
+</div>
+
+<div class="row g-3">
+    {% for project in projects %}
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="mb-0 fw-700" style="font-size:1rem">{{ project.name }}</h6>
+                <span class="badge
+                    {% if project.status == 'active' %}bg-success{% elif project.status == 'on_hold' %}bg-warning text-dark{% elif project.status == 'completed' %}bg-primary{% else %}bg-secondary{% endif %}
+                    " style="font-size:0.68rem">{{ project.get_status_display }}</span>
+            </div>
+            {% if project.description %}
+            <p class="text-muted mb-3" style="font-size:0.85rem">{{ project.description|truncatechars:80 }}</p>
+            {% endif %}
+
+            <div class="mb-2">
+                <div class="d-flex justify-content-between mb-1" style="font-size:0.78rem; color:#64748b">
+                    <span>Progress</span>
+                    <span>{{ project.completed_task_count }}/{{ project.task_count }} tasks</span>
+                </div>
+                <div class="progress-thin">
+                    <div class="progress-fill" style="width:{{ project.progress_percent }}%"></div>
+                </div>
+            </div>
+
+            {% if project.end_date %}
+            <div class="text-muted mb-3" style="font-size:0.78rem">
+                <i class="bi bi-calendar3 me-1"></i>Due {{ project.end_date }}
+            </div>
+            {% endif %}
+
+            <div class="d-flex gap-2 mt-auto">
+                <a href="{% url 'project_detail' project.pk %}" class="btn btn-sm btn-outline-primary flex-1">View Board</a>
+                {% if user.is_manager_role %}
+                <a href="{% url 'project_edit' project.pk %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-folder2 fs-1 d-block mb-3"></i>
+            <h5>No projects yet</h5>
+            {% if user.is_manager_role %}
+            <a href="{% url 'project_create' %}" class="btn btn-primary mt-2">Create your first project</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
