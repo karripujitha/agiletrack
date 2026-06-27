@@ -30,6 +30,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ← add this line
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    ...
+]
+
+
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
@@ -100,4 +108,10 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # ... rest of your settings stay the same
+
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
